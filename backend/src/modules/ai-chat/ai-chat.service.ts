@@ -712,7 +712,7 @@ FILTER RULES (VERY IMPORTANT - for filtering tasks by priority, status, type, et
     } = {},
   ): void {
     const {
-      allowedPattern = /^[a-zA-Z0-9.-]+$/,
+      allowedPattern = /^[a-zA-Z0-9.\-\/:]+$/,
       maxLength = 100,
       allowPathTraversal = false,
       customErrorMessage = 'Model name contains invalid characters',
