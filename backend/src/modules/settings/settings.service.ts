@@ -219,7 +219,28 @@ export class SettingsService {
     }));
 
     // Combine user-specific and global settings (user-specific take precedence)
-    return [...userSettingsWithFlag, ...globalSettingsWithFlag];
+    const combined = [...userSettingsWithFlag, ...globalSettingsWithFlag];
+
+    // Inject environment variables as globally available settings if they aren't overridden
+    const addEnvSetting = (key: string, value: string | undefined, category: string, isEncrypted: boolean) => {
+      if (value && !combined.find(s => s.key === key)) {
+        combined.push({
+          key,
+          value,
+          description: `Global configuration from environment variables`,
+          category,
+          isUserSpecific: false,
+          isEncrypted,
+        });
+      }
+    };
+
+    addEnvSetting('ai_enabled', process.env.AI_ENABLED || 'true', 'ai', false);
+    addEnvSetting('ai_api_key', process.env.OPENAI_API_KEY, 'ai', true);
+    addEnvSetting('ai_model', process.env.AI_MODEL || 'deepseek/deepseek-chat-v3-0324:free', 'ai', false);
+    addEnvSetting('ai_api_url', process.env.AI_API_URL || 'https://openrouter.ai/api/v1', 'ai', false);
+
+    return combined;
   }
 
   /**

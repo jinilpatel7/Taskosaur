@@ -179,18 +179,18 @@ FILTER RULES (VERY IMPORTANT - for filtering tasks by priority, status, type, et
   async chat(chatRequest: ChatRequestDto, userId: string): Promise<ChatResponseDto> {
     try {
       // Check if AI is enabled
-      const isEnabled = await this.settingsService.get('ai_enabled', userId);
+      const isEnabled = await this.settingsService.get('ai_enabled', userId, process.env.AI_ENABLED || 'true');
       if (isEnabled !== 'true') {
         throw new BadRequestException(
           'AI chat is currently disabled. Please enable it in settings.',
         );
       }
 
-      // Get API settings from database
+      // Get API settings from database, fallback to environment variables
       const [apiKey, model, rawApiUrl] = await Promise.all([
-        this.settingsService.get('ai_api_key', userId),
-        this.settingsService.get('ai_model', userId, 'deepseek/deepseek-chat-v3-0324:free'),
-        this.settingsService.get('ai_api_url', userId, 'https://openrouter.ai/api/v1'),
+        this.settingsService.get('ai_api_key', userId, process.env.OPENAI_API_KEY),
+        this.settingsService.get('ai_model', userId, process.env.AI_MODEL || 'deepseek/deepseek-chat-v3-0324:free'),
+        this.settingsService.get('ai_api_url', userId, process.env.AI_API_URL || 'https://openrouter.ai/api/v1'),
       ]);
 
       const apiUrl = rawApiUrl ? this.validateApiUrl(rawApiUrl) : 'https://openrouter.ai/api/v1';
@@ -697,7 +697,7 @@ FILTER RULES (VERY IMPORTANT - for filtering tasks by priority, status, type, et
 
       return {
         success: false,
-        error: 'Connection test failed. Please check your configuration.',
+        error: `Connection test failed: ${errorMessage}. Please check your configuration.`,
       };
     }
   }
